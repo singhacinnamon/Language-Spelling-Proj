@@ -22,7 +22,7 @@ words_file = open("output.txt", mode='r', encoding="utf8")
 word_list = words_file.readlines()
 
 
-mytext = random.choice(word_list)
+mytext = random.choice(word_list).strip()
 lang = "th"
 audio = gTTS(text=mytext, lang="th", slow=False)
 audio.save("tts.mp3")
