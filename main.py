@@ -71,18 +71,19 @@ word_list = words_file.readlines()
 mytext = random.choice(word_list).strip()
 lang = "th"
 audio = gTTS(text=mytext, lang="th", slow=False)
-audio.save("tts.mp3")
+audio.save("sounds/tts.mp3")
 # os.system("start example.mp3")
 mix_chan = mixer.Channel(0)
+effect_chan = mixer.Channel(1)
 
-mix_chan.play(mixer.Sound("tts.mp3"))
+mix_chan.play(mixer.Sound("sounds/tts.mp3"))
 
 while True:
     event, values = tool_window.read()
     if event == sg.WIN_CLOSED or event == "Exit":
         break
     if event == "-PLAY-":
-        mix_chan.play(mixer.Sound("tts.mp3"))
+        mix_chan.play(mixer.Sound("sounds/tts.mp3"))
     
     if event == "-SUBMIT-" or event == "-ENTER-":
         print(tool_window["-INPUT-"].get())
@@ -90,9 +91,11 @@ while True:
         if tool_window["-INPUT-"].get() == mytext:
             tool_window["-OUTPUT_MSG-"].update("Correct! The word was ")
             tool_window["-OUTPUT-"].update(mytext)
+            effect_chan.play(mixer.Sound("sounds/correct.mp3"))
         else:
             tool_window["-OUTPUT_MSG-"].update("That's not quite right")
             tool_window["-OUTPUT-"].update("")
+            effect_chan.play(mixer.Sound("sounds/dud.mp3"))
 
     if event == "-ANSWER-":
         tool_window["-OUTPUT_MSG-"].update("The word was ")
@@ -101,12 +104,14 @@ while True:
         tool_window["-INPUT-"].update("")
     if event == "-VOLUME-":
         mix_chan.set_volume(values["-VOLUME-"]/100)
+        effect_chan.set_volume(values["-VOLUME-"]/100)
     if event == "-NEW-":
         mytext = random.choice(word_list).strip()
         audio = gTTS(text=mytext, lang="th", slow=False)
-        audio.save("tts.mp3")
+        audio.save("sounds/tts.mp3")
         tool_window["-OUTPUT_MSG-"].update("")
         tool_window["-OUTPUT-"].update("")
-        mix_chan.play(mixer.Sound("tts.mp3"))
+        tool_window["-INPUT-"].update("")
+        mix_chan.play(mixer.Sound("sounds/tts.mp3"))
 
 tool_window.close()
