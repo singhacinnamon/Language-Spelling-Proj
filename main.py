@@ -54,8 +54,8 @@ layout = [
 
     [sg.Push(), 
      sg.Button("Submit", pad=(10,0), key="-SUBMIT-", size=(12,2), button_color="green", ), 
-     sg.Push(), 
      sg.Button("Show Answer", pad=(10,0), key="-ANSWER-", button_color="#e41429", size=(12,2)), 
+     sg.Button("Next Word", pad=(10,0), key="-NEW-", button_color="#e41429", size=(12,2)),
      sg.Push()] 
 ]
 tool_window = sg.Window("Thai Practice", layout, finalize=True, size=(700, 400))
@@ -99,5 +99,14 @@ while True:
         tool_window["-OUTPUT-"].update(mytext)
     if event == "-INPUT-" and tool_window["-INPUT-"].get() == "Type word here":
         tool_window["-INPUT-"].update("")
+    if event == "-VOLUME-":
+        mix_chan.set_volume(values["-VOLUME-"]/100)
+    if event == "-NEW-":
+        mytext = random.choice(word_list).strip()
+        audio = gTTS(text=mytext, lang="th", slow=False)
+        audio.save("tts.mp3")
+        tool_window["-OUTPUT_MSG-"].update("")
+        tool_window["-OUTPUT-"].update("")
+        mix_chan.play(mixer.Sound("tts.mp3"))
 
 tool_window.close()
