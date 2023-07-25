@@ -43,6 +43,11 @@ layout = [
      sg.Text("", enable_events=True, key="-OUTPUT-", text_color=("lime"), font=("unesco", 60)),
      sg.Push()],
 
+     [sg.Push(),
+      sg.Text("", key="-MEANING-"), 
+      sg.Push()
+     ],
+
     [sg.Push(), 
      sg.Button('Listen Again', pad=(10, 10), key="-PLAY-"), sg.Text("Volume: "), 
      sg.Slider(range=(0, 100), orientation='h', size=(20,8), enable_events=True, key="-VOLUME-", default_value=50), 
@@ -64,13 +69,19 @@ tool_window["-INPUT-"].bind("<Return>", "-ENTER-")
 pygame.init()
 mixer.init()
 
-words_file = open("output.txt", mode='r', encoding="utf8")
+words_file = open("word_list.txt", mode='r', encoding="utf8")
 word_list = words_file.readlines()
 
+word_meaning_pairs = []
+for line in word_list:
+    pair = line.split()
+    print(pair)
+    word_meaning_pairs.append([pair[0], pair[1]])
 
-mytext = random.choice(word_list).strip()
+
+word_pair = random.choice(word_meaning_pairs)
 lang = "th"
-audio = gTTS(text=mytext, lang="th", slow=False)
+audio = gTTS(text=word_pair[0], lang="th", slow=False)
 audio.save("sounds/tts.mp3")
 # os.system("start example.mp3")
 mix_chan = mixer.Channel(0)
@@ -87,10 +98,11 @@ while True:
     
     if event == "-SUBMIT-" or event == "-ENTER-":
         print(tool_window["-INPUT-"].get())
-        print(mytext)
-        if tool_window["-INPUT-"].get() == mytext:
+        print(word_pair[0])
+        if tool_window["-INPUT-"].get() == word_pair[0]:
             tool_window["-OUTPUT_MSG-"].update("Correct! The word was ")
-            tool_window["-OUTPUT-"].update(mytext)
+            tool_window["-OUTPUT-"].update(word_pair[0])
+            tool_window["-MEANING-"].update("Meaning: " + word_pair[1])
             effect_chan.play(mixer.Sound("sounds/correct.mp3"))
         else:
             tool_window["-OUTPUT_MSG-"].update("That's not quite right")
@@ -99,19 +111,21 @@ while True:
 
     if event == "-ANSWER-":
         tool_window["-OUTPUT_MSG-"].update("The word was ")
-        tool_window["-OUTPUT-"].update(mytext)
+        tool_window["-OUTPUT-"].update(word_pair[0])
+        tool_window["-MEANING-"].update("Meaning: " + word_pair[1])
     if event == "-INPUT-" and tool_window["-INPUT-"].get() == "Type word here":
         tool_window["-INPUT-"].update("")
     if event == "-VOLUME-":
         mix_chan.set_volume(values["-VOLUME-"]/100)
         effect_chan.set_volume(values["-VOLUME-"]/100)
     if event == "-NEW-":
-        mytext = random.choice(word_list).strip()
-        audio = gTTS(text=mytext, lang="th", slow=False)
+        word_pair = random.choice(word_meaning_pairs)
+        audio = gTTS(text=word_pair[0], lang="th", slow=False)
         audio.save("sounds/tts.mp3")
         tool_window["-OUTPUT_MSG-"].update("")
         tool_window["-OUTPUT-"].update("")
         tool_window["-INPUT-"].update("")
+        tool_window["-MEANING-"].update("")
         mix_chan.play(mixer.Sound("sounds/tts.mp3"))
 
 tool_window.close()
