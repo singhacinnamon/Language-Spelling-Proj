@@ -1,12 +1,9 @@
-from gtts import gTTS
+import time
 import PySimpleGUI as sg
-import random
-import pygame
-from pygame import mixer, time
-import os
+from pygame import mixer
+from src import Thai_Model
 
-from src import Lang_Model, Thai_Model
-
+# Layout for title screen, currently only has play button
 title_layout = [
     [sg.Push(), sg.Text("Thai Listening/Spelling Game", font=("arial_black", 35)), sg.Push()], 
 
@@ -24,6 +21,7 @@ title_layout = [
 
 tool_window = sg.Window("Language Practice", title_layout, finalize=True, size=(700, 400))
 
+# Title screen main loop
 while True:
     event, values = tool_window.read()
     if event == sg.WIN_CLOSED or event == "Exit":
@@ -32,6 +30,7 @@ while True:
         tool_window.close()
         break
 
+# layout for the game window
 layout = [
     [sg.Push(), 
      sg.Text("Listen, Spell!", font=("arial_black", 30)), 
@@ -69,12 +68,13 @@ layout = [
 tool_window = sg.Window("Thai Practice", layout, finalize=True, size=(700, 400))
 tool_window["-INPUT-"].bind("<Return>", "-ENTER-")
 
-lang = "th"
+lang = "th"     # When more languages are added, this will be set from the title screen and other models may be instantiated
 if lang=="th":
     lang_model = Thai_Model()
 
-effect_chan = mixer.Channel(1)
+effect_chan = mixer.Channel(1)  # Consider adding effect noises to Lang_Model
 
+time.sleep(1)       # Wait a second before saying word so mixer finishes initializing
 lang_model.play_sound()
 
 while True:
@@ -84,31 +84,32 @@ while True:
     if event == "-PLAY-":
         lang_model.play_sound()
     
+    # Check input
     if event == "-SUBMIT-" or event == "-ENTER-":
-        print(tool_window["-INPUT-"].get())
-        print(lang_model.get_word())
+        # Correct case: Show word and meaning, say word again
         if tool_window["-INPUT-"].get() == lang_model.get_word():
             tool_window["-OUTPUT_MSG-"].update("Correct! The word was ")
             tool_window["-OUTPUT-"].update(lang_model.get_word())
             tool_window["-MEANING-"].update("Meaning: " + lang_model.get_tran())
             effect_chan.play(mixer.Sound("sounds/correct.mp3"))
+        # Incorrect case: notify wrong, clear answer space, play dud sound
         else:
             tool_window["-OUTPUT_MSG-"].update("That's not quite right")
             tool_window["-OUTPUT-"].update("")
             effect_chan.play(mixer.Sound("sounds/dud.mp3"))
 
+    # Show Answer and meaning
     if event == "-ANSWER-":
         tool_window["-OUTPUT_MSG-"].update("The word was ")
         tool_window["-OUTPUT-"].update(lang_model.get_word())
         tool_window["-MEANING-"].update("Meaning: " + lang_model.get_tran())
 
-    if event == "-INPUT-" and tool_window["-INPUT-"].get() == "Type word here":
-        tool_window["-INPUT-"].update("")
-
+    # Update volume when volume slider is moved
     if event == "-VOLUME-":
         lang_model.volume(values["-VOLUME-"])
         effect_chan.set_volume(values["-VOLUME-"]/100)
 
+    # New word: select new word from list, clear dynamic fields, say new word
     if event == "-NEW-":
         lang_model.next_word()
         tool_window["-OUTPUT_MSG-"].update("")
